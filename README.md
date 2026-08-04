@@ -1,6 +1,7 @@
 # STRUCTURE QUERY LANGUAGE 
 ## dual table
 **Snowflake and Databricks, there is no DUAL table like in Oracle. The equivalent way is simply to run a SELECT statement without a FROM clause.**
+
 ###Snowflake Equivalent
 ~~~~
 -- Snowflake does not need DUAL
