@@ -22,9 +22,9 @@ For generating sequences (like Oracle’s recursive queries), you can use
 ~~~~~~~~~
 SELECT explode(sequence(1,5)) AS n;
 ~~~~~~~~~
-**##NULL**
+## NULL
 
-###NULL in Snowflake
+### NULL in Snowflake
 
 **Snowflake and Databricks, NULL means a value that is undefined, unassigned, or unknown. It’s not zero, not an empty string, and not false — it simply represents “no value.”**
 ###NULL in Snowflake and Databricks are same 
