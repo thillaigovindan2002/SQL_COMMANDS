@@ -129,3 +129,121 @@ Require compute resources for refresh.
 May lag behind base table until refreshed.
 
 More complex to manage.
+
+**SQL commands are grouped into five categories — DDL, DML, DQL, DCL, and TCL — and both Snowflake and Databricks support them with slight syntax differences. Snowflake emphasizes cloud‑native features like CREATE WAREHOUSE and CLONE, while Databricks focuses on Delta Lake operations and Unity Catalog security**
+##DDL (Data Definition Language)
+Definition: Commands used to define or change database objects (tables, schemas, views).
+CREATE → make new objects.
+ALTER → modify existing objects.
+DROP → remove objects.
+TRUNCATE → quickly delete all rows in a table (faster than DELETE).
+~~~~~~~~~~~~
+-- Create a table
+CREATE TABLE users (id INT, name VARCHAR);
+
+-- Alter table: add column
+ALTER TABLE users ADD COLUMN email VARCHAR;
+
+-- Drop table
+DROP TABLE users;
+
+-- Truncate table
+TRUNCATE TABLE users;
+~~~~~~~~~~~~~~
+both are same 
+
+##DML Definition
+Definition: DML commands are used to manipulate data inside tables (insert, update, delete, merge).
+They don’t change the structure of the table — only the contents.
+INSERT → add new rows.
+UPDATE → modify existing rows.
+DELETE → remove rows.
+MERGE → upsert (insert or update depending on condition).
+
+~~~~~~~~~
+-- Insert
+INSERT INTO users (id, name) VALUES (1, 'Thanigai');
+
+-- Update
+UPDATE users SET name = 'Thani' WHERE id = 1;
+
+-- Delete
+DELETE FROM users WHERE id = 1;
+
+-- Merge (Upsert)
+MERGE INTO users u
+USING staging s
+ON u.id = s.id
+WHEN MATCHED THEN UPDATE SET u.name = s.name
+WHEN NOT MATCHED THEN INSERT (id, name) VALUES (s.id, s.name);
+~~~~~~~~~
+
+##DQL Definition
+~~~~~~~~
+-- Simple select
+SELECT * FROM users;
+
+-- Filtered query
+SELECT id, name FROM users WHERE id = 1;
+
+-- Aggregation
+SELECT product_id, SUM(amount) AS total_sales
+FROM orders
+GROUP BY product_id
+ORDER BY total_sales DESC;
+
+-- Join
+SELECT u.id, u.name, o.amount
+FROM users u
+JOIN orders o ON u.id = o.user_id;
+~~~~~~~~
+##DCL Definition
+Data Control Language (DCL) → commands used to control access and permissions in the database.
+GRANT → give privileges (like SELECT, INSERT, UPDATE).
+REVOKE → remove privileges.
+These commands don’t change data or structure — they control who can do what.
+**Snowflake DCL Examples
+Snowflake uses roles and warehouses for access control.
+~~~~~~~
+-- Grant SELECT privilege on a table to a role
+GRANT SELECT ON TABLE users TO ROLE analyst;
+
+-- Grant usage on a warehouse
+GRANT USAGE ON WAREHOUSE my_wh TO ROLE analyst;
+
+-- Revoke privilege
+REVOKE SELECT ON TABLE users FROM ROLE analyst;
+~~~~~~~~
+**databricks in example
+Databricks uses Unity Catalog for fine‑grained permissions.
+~~~~~~~~~
+-- Grant SELECT privilege on a table to a user/group
+GRANT SELECT ON TABLE users TO `analyst`;
+
+-- Grant usage on a catalog
+GRANT USAGE ON CATALOG sales TO `analyst`;
+
+-- Revoke privilege
+REVOKE SELECT ON TABLE users FROM `analyst`;
+~~~~~~~~
+
+##Transaction Control Language (TCL) → manages transactions in SQL.
+**Snowflake → TCL works at the warehouse level.
+Databricks → TCL works at the Delta Lake level (distributed storage).
+Similarity → Both support BEGIN, COMMIT, ROLLBACK.
+Limitation → Neither supports SAVEPOINT**
+~~~~~~~~~~
+BEGIN;
+
+UPDATE users SET name = 'Thani' WHERE id = 1;
+DELETE FROM orders WHERE product_id = 10;
+
+ROLLBACK;  -- undo everything
+COMMIT;    -- save everything
+~~~~~~~~~~~~
+
+
+
+
+
+
