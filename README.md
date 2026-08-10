@@ -131,7 +131,7 @@ May lag behind base table until refreshed.
 More complex to manage.
 
 **SQL commands are grouped into five categories — DDL, DML, DQL, DCL, and TCL — and both Snowflake and Databricks support them with slight syntax differences. Snowflake emphasizes cloud‑native features like CREATE WAREHOUSE and CLONE, while Databricks focuses on Delta Lake operations and Unity Catalog security**
-##DDL (Data Definition Language)
+## DDL (Data Definition Language)
 Definition: Commands used to define or change database objects (tables, schemas, views).
 CREATE → make new objects.
 ALTER → modify existing objects.
@@ -152,7 +152,7 @@ TRUNCATE TABLE users;
 ~~~~~~~~~~~~~~
 both are same 
 
-##DML Definition
+## DML Definition
 Definition: DML commands are used to manipulate data inside tables (insert, update, delete, merge).
 They don’t change the structure of the table — only the contents.
 INSERT → add new rows.
@@ -178,7 +178,7 @@ WHEN MATCHED THEN UPDATE SET u.name = s.name
 WHEN NOT MATCHED THEN INSERT (id, name) VALUES (s.id, s.name);
 ~~~~~~~~~
 
-##DQL Definition
+## DQL Definition
 ~~~~~~~~
 -- Simple select
 SELECT * FROM users;
@@ -197,12 +197,12 @@ SELECT u.id, u.name, o.amount
 FROM users u
 JOIN orders o ON u.id = o.user_id;
 ~~~~~~~~
-##DCL Definition
+## DCL Definition
 Data Control Language (DCL) → commands used to control access and permissions in the database.
 GRANT → give privileges (like SELECT, INSERT, UPDATE).
 REVOKE → remove privileges.
 These commands don’t change data or structure — they control who can do what.
-**Snowflake DCL Examples
+**Snowflake DCL Examples**
 Snowflake uses roles and warehouses for access control.
 ~~~~~~~
 -- Grant SELECT privilege on a table to a role
@@ -214,7 +214,7 @@ GRANT USAGE ON WAREHOUSE my_wh TO ROLE analyst;
 -- Revoke privilege
 REVOKE SELECT ON TABLE users FROM ROLE analyst;
 ~~~~~~~~
-**databricks in example
+**databricks in example**
 Databricks uses Unity Catalog for fine‑grained permissions.
 ~~~~~~~~~
 -- Grant SELECT privilege on a table to a user/group
@@ -227,7 +227,7 @@ GRANT USAGE ON CATALOG sales TO `analyst`;
 REVOKE SELECT ON TABLE users FROM `analyst`;
 ~~~~~~~~
 
-##Transaction Control Language (TCL) → manages transactions in SQL.
+## Transaction Control Language (TCL) → manages transactions in SQL.
 **Snowflake → TCL works at the warehouse level.
 Databricks → TCL works at the Delta Lake level (distributed storage).
 Similarity → Both support BEGIN, COMMIT, ROLLBACK.
