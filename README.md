@@ -284,6 +284,86 @@ WHERE NOT EXISTS (SELECT 1 FROM orders o WHERE u.id = o.user_id);
 | **SEMI JOIN**  | Not native (use EXISTS)     | Supported directly          |
 | **ANTI JOIN**  | Not native (use NOT EXISTS) | Supported directly          |
 
+## Set Operations
+
+**Set operations combine results from multiple queries.
+Main types:
+UNION → combines results, removes duplicates.
+UNION ALL → combines results, keeps duplicates.
+INTERSECT → returns common rows.
+EXCEP-- UNION
+SELECT id, name FROM users
+UNION
+SELECT id, name FROM customers;
+
+-- UNION ALL
+SELECT id, name FROM users
+UNION ALL
+SELECT id, name FROM customers;
+
+-- INTERSECT
+SELECT id FROM users
+INTERSECT
+SELECT id FROM customers;
+
+-- EXCEPT (Snowflake uses MINUS keyword)
+SELECT id FROM users
+MINUS
+SELECT id FROM customers;
+T / MINUS → returns rows from first query not in second**
+
+## Snowflake and databricks Set Operations
+~~~~~~~~~
+-- UNION
+SELECT id, name FROM users
+UNION
+SELECT id, name FROM customers;
+
+-- UNION ALL
+SELECT id, name FROM users
+UNION ALL
+SELECT id, name FROM customers;
+
+-- INTERSECT
+SELECT id FROM users
+INTERSECT
+SELECT id FROM customers;
+
+-- EXCEPT (Snowflake uses MINUS keyword)
+SELECT id FROM users
+MINUS
+SELECT id FROM customers;
+~~~~~~~~~~
+**Snowflake and Databricks both support pseudo/virtual columns, but they differ in naming and usage. Snowflake uses virtual columns defined at table creation, while Databricks relies on system-generated pseudo columns (like _metadata) in Delta tables. Neither stores extra data — values are computed at query time**
+
+##Snowflake Pseudo/Virtual Columns
+**Definition: A virtual column is a computed column defined in the table schema.**
+~~~~
+CREATE OR REPLACE TABLE orders (
+    order_id INT,
+    quantity INT,
+    unit_price DECIMAL(10,2),
+    revenue DECIMAL(12,2) AS (quantity * unit_price) VIRTUAL
+);
+
+-- Querying the virtual column
+SELECT order_id, revenue FROM orders;
+~~~~~~~
+##Databricks Pseudo Columns
+**Definition: Databricks Delta tables expose pseudo/system columns like _metadata for file-level details.**
+Common pseudo columns:
+
+_metadata.file_path → path of the file where the row came from
+
+_metadata.file_size → size of the source file
+
+_metadata.row_index → row number within the file
+~~~~~~~
+-- Querying pseudo columns in Databricks
+SELECT _metadata.file_path, _metadata.file_size, name
+FROM users;
+~~~~~~~
+
 
 
 
