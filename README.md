@@ -163,13 +163,10 @@ MERGE → upsert (insert or update depending on condition).
 ~~~~~~~~~
 -- Insert
 INSERT INTO users (id, name) VALUES (1, 'Thanigai');
-
 -- Update
 UPDATE users SET name = 'Thani' WHERE id = 1;
-
 -- Delete
 DELETE FROM users WHERE id = 1;
-
 -- Merge (Upsert)
 MERGE INTO users u
 USING staging s
@@ -226,21 +223,67 @@ GRANT USAGE ON CATALOG sales TO `analyst`;
 -- Revoke privilege
 REVOKE SELECT ON TABLE users FROM `analyst`;
 ~~~~~~~~
-
-## Transaction Control Language (TCL) → manages transactions in SQL.
-**Snowflake → TCL works at the warehouse level.
+## Transaction Control Language
+manages transactions in SQL.
+**Snowflake → TCL works at the warehouse level
 Databricks → TCL works at the Delta Lake level (distributed storage).
 Similarity → Both support BEGIN, COMMIT, ROLLBACK.
 Limitation → Neither supports SAVEPOINT**
 ~~~~~~~~~~
 BEGIN;
-
 UPDATE users SET name = 'Thani' WHERE id = 1;
 DELETE FROM orders WHERE product_id = 10;
-
 ROLLBACK;  -- undo everything
 COMMIT;    -- save everything
 ~~~~~~~~~~~~
+## Snowflake JOIN Examples
+~~~~~~~~~~
+-- Inner Join
+SELECT u.id, u.name, o.amount
+FROM users u
+INNER JOIN orders o ON u.id = o.user_id;
+
+-- Left Join
+SELECT u.id, u.name, o.amount
+FROM users u
+LEFT JOIN orders o ON u.id = o.user_id;
+
+-- Full Outer Join
+SELECT u.id, u.name, o.amount
+FROM users u
+FULL OUTER JOIN orders o ON u.id = o.user_id;
+~~~~~~~~~~~
+## Databricks JOIN Examples
+~~~~~~~~
+-- Inner Join
+SELECT u.id, u.name, o.amount
+FROM users u
+INNER JOIN orders o ON u.id = o.user_id;
+
+-- Left Join
+SELECT u.id, u.name, o.amount
+FROM users u
+LEFT JOIN orders o ON u.id = o.user_id;
+
+-- Semi Join (Databricks specific)
+SELECT * FROM users u
+WHERE EXISTS (SELECT 1 FROM orders o WHERE u.id = o.user_id);
+
+-- Anti Join (Databricks specific)
+SELECT * FROM users u
+WHERE NOT EXISTS (SELECT 1 FROM orders o WHERE u.id = o.user_id);
+~~~~~~~~~~~
+
+| Join Type      | **Snowflake**               | **Databricks**              |
+|----------------|-----------------------------|-----------------------------|
+| **INNER JOIN** | Supported                   | Supported                   |
+| **LEFT JOIN**  | Supported                   | Supported                   |
+| **RIGHT JOIN** | Supported                   | Supported                   |
+| **FULL OUTER** | Supported                   | Supported                   |
+| **CROSS JOIN** | Supported                   | Supported                   |
+| **SEMI JOIN**  | Not native (use EXISTS)     | Supported directly          |
+| **ANTI JOIN**  | Not native (use NOT EXISTS) | Supported directly          |
+
 
 
 
