@@ -377,8 +377,52 @@ Definition: Databricks SQL supports ANSI aggregates plus extensions for big data
 Common functions: SUM, AVG, COUNT, MIN, MAX.
 
 Advanced grouping: GROUPING SETS, CUBE, ROLLUP → multiple aggregations in one query.
+###SUM 
+Returns the total of a numeric column.
+~~~~~~
+SELECT SUM(quantity) AS total_qty FROM dealer;
+~~~~~~
+###AVG 
+Returns the average value of a numeric column.
+~~~~~~
+SELECT AVG(quantity) AS avg_qty FROM dealer;
+~~~~~~~
+###COUNT
+Returns the number of rows or non‑null values.
+~~~~~
+SELECT COUNT(*) AS total_rows FROM dealer;
+~~~~~
+###MIN / MAX
+Return the smallest or largest value in a column.
+~~~~~~
+SELECT MIN(quantity), MAX(quantity) FROM dealer;
+~~~~~~~
+###GROUPING SETS
+Generates multiple groupings in one query.
 
-Special functions: agg() for metric views, approximate functions for large datasets.
+sql
+SELECT city, car_model, SUM(quantity) 
+FROM dealer 
+GROUP BY GROUPING SETS ((city), (car_model));
+CUBE → Generates all combinations of groupings for multidimensional analysis.
+~~~~~~~
+SELECT city, car_model, SUM(quantity) 
+FROM dealer 
+GROUP BY CUBE(city, car_model);
+~~~~~~~
+###ROLLUP → 
+Generates hierarchical groupings (drill‑down totals).
+~~~~~~
+SELECT city, car_model, SUM(quantity) 
+FROM dealer 
+GROUP BY ROLLUP(city, car_model);
+~~~~~~
+###agg()
+Used in Databricks metric views to compute aggregates programmatically.
+~~~~~~
+SELECT agg('SUM', quantity) AS total_qty FROM dealer;
+~~~~~~
+
 
 
 
