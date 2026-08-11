@@ -528,8 +528,343 @@ SELECT CONCAT(first_name, ' ', last_name) AS full_name FROM users;
 SELECT TRIM('   Thanigai   ') AS clean_name;
 ~~~~~~
 👉 “Character manipulation functions handle string operations like UPPER, LOWER, SUBSTRING, CONCAT, and TRIM.”
+## PL/SQL vs SQL
+### SQL
+Declarative language used to query and manipulate data.  
+~~~~~
+SELECT name, salary FROM employees WHERE department = 'HR';
+~~~~~~~
+### PL/SQL
+Procedural extension of SQL (Oracle) that supports loops, conditions, variables, exceptions, cursors, and stored procedures.  ~~
+DECLARE v_total NUMBER;
+BEGIN
+  SELECT SUM(salary) INTO v_total FROM employees;
+  IF v_total > 100000 THEN
+    DBMS_OUTPUT.PUT_LINE('High Budget');
+  ELSE
+    DBMS_OUTPUT.PUT_LINE('Normal Budget');
+  END IF;
+END;
+~~
+### Snowflake Equivalent pl\sql
 
+**Snowflake does not support PL/SQL directly, but it provides:
+Snowflake Scripting
+JavaScript Stored Procedures**
 
+Snowflake Scripting → PL/SQL‑like procedural blocks (DECLARE, BEGIN…END, IF, FOR, WHILE).
+JavaScript Stored Procedures → procedural logic written in JavaScript.
+~~~~
+DECLARE v_total NUMBER;
+BEGIN
+  SELECT SUM(quantity) INTO v_total FROM orders;
+  IF v_total > 1000 THEN
+    RETURN 'High Volume';
+  ELSE
+    RETURN 'Normal Volume';
+  END IF;
+END;
+~~~~~
+**Snowflake replaces PL/SQL with Snowflake Scripting and JavaScript stored procedures, supporting procedural logic inside the warehouse**
+**Exceptions**
+
+In Snowflake Scripting, you can handle exceptions using EXCEPTION blocks, similar to PL/SQL.
+~~~~~~
+BEGIN
+  LET v_total INT;
+  SELECT SUM(quantity) INTO v_total FROM orders;
+EXCEPTION
+  WHEN OTHER THEN
+    RETURN 'Error occurred';
+END;
+~~~~~~
+👉 Interview point: “Snowflake Scripting supports exception handling blocks, making it close to PL/SQL.”
+**Cursors**
+Snowflake Scripting supports explicit cursors to iterate over query results.
+~~~~~
+DECLARE cur CURSOR FOR SELECT order_id, quantity FROM orders;
+FOR rec IN cur DO
+  LET v_msg STRING := 'Order ' || rec.order_id || ' Qty ' || rec.quantity;
+END FOR;
+~~~~~
+👉 Interview point: “Snowflake allows cursors inside scripting blocks to loop through query results.”
+
+### Databricks Equivalent
+Databricks does not support PL/SQL or stored procedures.
+Instead, it uses:
++PySpark / Scala → procedural programming for workflows.
++SQL → declarative queries.
++UDFs (User Defined Functions) → custom logic in Python/Scala.
++Notebooks → workflow orchestration.
+~~~~~
+from pyspark.sql.functions import col, when
+
+df = orders.withColumn(
+    "order_type",
+    when(col("quantity") > 10, "Bulk Order").otherwise("Regular Order")
+)
+~~~~~
+**“Databricks doesn’t support PL/SQL; instead, you write procedural logic in PySpark/Scala notebooks or define UDFs for custom functions.”**
+
+**Exceptions**
+Databricks SQL does not support exception handling like PL/SQL.
+Error handling is done in PySpark/Scala using try…except (Python) or try…catch (Scala).
+Example (PySpark):
+~~~~~
+python
+try:
+    df = spark.sql("SELECT * FROM orders")
+except Exception as e:
+    print("Error occurred:", e)
+~~~~~
+👉 Interview point: “Databricks handles exceptions at the programming language level (Python/Scala), not inside SQL.”
+**Cursors**
+Databricks SQL does not support cursors.
+Iteration is done using DataFrame APIs in PySpark/Scala.
+Example (PySpark):
+
+python
+~~
+for row in df.collect():
+    print(f"Order {row.order_id}, Qty {row.quantity}")
+~~
+👉 Interview point: “Databricks replaces cursors with DataFrame iteration in PySpark/Scala.”
+## Snowflake vs Databricks (PL/SQL Equivalent)
+
+| Feature              | **Snowflake**                                   | **Databricks**                                   |
+|-----------------------|------------------------------------------------|--------------------------------------------------|
+| **Language Type**    | Declarative + Procedural (Snowflake Scripting) | Declarative SQL + Procedural PySpark/Scala       |
+| **Procedural Blocks**| Supported via Snowflake Scripting (`IF`, `LOOP`, `DECLARE`) | Not supported in SQL; use notebooks/UDFs         |
+| **Stored Procedures**| JavaScript & Snowflake Scripting                | Not supported; use notebook workflows            |
+| **UDFs**             | Supported (JavaScript, SQL UDFs)                | Supported (Python/Scala UDFs)                    |
+## PL/SQL vs SQL in Snowflake & Databricks
++SQL → Declarative language used to query and manipulate data.
++PL/SQL → Procedural extension of SQL that adds loops, conditions, variables, exceptions, cursors, and stored procedures.
+### Snowflake
+SQL → Fully supported (ANSI SQL).
+PL/SQL Equivalent → Not supported directly, but Snowflake provides:
+Snowflake Scripting → PL/SQL‑like procedural blocks (DECLARE, BEGIN…END, IF, FOR, WHILE).
+JavaScript Stored Procedures → procedural logic written in JavaScript.
+### Databricks
+SQL → Fully supported (ANSI SQL for queries).
+PL/SQL Equivalent → Not supported. Instead, Databricks uses:
+PySpark / Scala → procedural programming for workflows.
+UDFs (User Defined Functions) → custom logic in Python/Scala.
+Notebooks & Jobs → workflow orchestration instead of stored procedures.
+## Functions in Snowflake vs Databricks
+### Snowflake
++Create Function → Yes, you can create UDFs (User Defined Functions) in SQL or JavaScript.
+~~~~
+CREATE OR REPLACE FUNCTION add_tax(price FLOAT)
+RETURNS FLOAT
+LANGUAGE SQL
+AS (price * 1.18);
+~~~~
++Alter Function 
+Supported with ALTER FUNCTION (to rename, change properties).
+~
+ALTER FUNCTION add_tax RENAME TO apply_tax;
+~
++Recursion 
+Not supported in SQL UDFs, but possible in JavaScript stored procedures.
++Drop Function → Supported with DROP FUNCTION.
+~~
+DROP FUNCTION add_tax(FLOAT);
+~~
+**👉 “Snowflake supports SQL and JavaScript UDFs. You can create, alter, and drop them. Recursion is only possible in JavaScript stored procedures, not SQL UDFs.”**
+
+### Databricks
++Create Function → Yes, you can create UDFs in Python/Scala or SQL.
+~~~~
+python
+from pyspark.sql.functions import udf
+from pyspark.sql.types import FloatType
+
+def add_tax(price):
+    return price * 1.18
+
+add_tax_udf = udf(add_tax, FloatType())
+spark.udf.register("add_tax", add_tax_udf)
+~~~~~
++Alter Function 
+Not directly supported; you usually re‑register the UDF with new logic.
+
++Recursion 
+Not supported in SQL UDFs; recursion can be done in Python/Scala functions.
+
++Drop Function 
+No direct DROP FUNCTION; you unregister or overwrite UDFs.
+**👉 Databricks supports UDFs in Python/Scala and SQL. Functions can be created and overwritten, but there’s no native ALTER or DROP syntax like Snowflake. Recursion is handled at the programming language level**
+
+## difference between Stored Procedures and Functions in Snowflake and Databricks 
+### Snowflake
++Stored Procedures → Used for complex workflows with multiple SQL statements, loops, cursors, and exception handling (JavaScript or Snowflake Scripting).
+
++Functions (UDFs) → Reusable logic that takes inputs and returns a single value, mainly for calculations or transformations.
+### Databricks
++Stored Procedures → Not supported; workflows are implemented using notebooks, Jobs, or PySpark/Scala scripts.
+
++Functions (UDFs) → Custom logic written in Python/Scala and registered for SQL use, returning a single value.
+## snowflake in trigger instead the stream and task
+### Snowflake Streams
++Definition → A stream is a change data capture (CDC) object that records inserts, updates, and deletes on a table.
+
++Purpose → Lets you query only the delta changes since the last consumption, instead of scanning the whole table.
+~~~
+CREATE OR REPLACE TABLE members (
+  id NUMBER, name STRING, fee NUMBER
+);
+
+-- Create a stream to track changes
+CREATE OR REPLACE STREAM member_stream ON TABLE members;
+
+-- Insert data
+INSERT INTO members VALUES (1,'Joe',0), (2,'Jane',0);
+
+-- Stream shows only new changes
+SELECT * FROM member_stream;
+~~~
+👉 Interview point: “Streams capture row‑level changes for downstream processing, replacing the need for triggers.” 
+
+### Snowflake Tasks
++Definition → A task is a scheduled unit of work that runs SQL statements or stored procedures.
++Purpose → Automates transformations, merges, or data movement based on time or stream conditions.
+~~~~~
+CREATE OR REPLACE TASK process_new_members
+WAREHOUSE = mywh
+SCHEDULE = '1 minute'
+WHEN SYSTEM$STREAM_HAS_DATA('member_stream')
+AS
+  MERGE INTO members_target t
+  USING member_stream s
+  ON t.id = s.id
+  WHEN MATCHED THEN UPDATE SET t.fee = s.fee
+  WHEN NOT MATCHED THEN INSERT (id, name, fee) VALUES (s.id, s.name, s.fee);
+~~~~~
+👉 Interview point: “Tasks automate SQL execution on a schedule or when streams detect changes.” 
+## Alternatives to Triggers in Databricks
+### Delta Live Tables
+
+Declarative pipelines that automatically process new data as it arrives.
+
+Acts like a trigger by continuously applying transformations when source data changes.
+👉 Interview point: “Delta Live Tables provide continuous ETL pipelines, replacing trigger‑style logic.”
+
+### Structured Streaming
+
+Real‑time streaming engine in Spark.
+
+Processes events (like inserts/updates) as they happen.
+👉 Interview point: “Structured Streaming handles event‑driven logic in real time, similar to triggers but at scale.”
+
+### Notebook Workflows
+
+Orchestrate jobs and tasks across notebooks.
+
+Used for scheduled or conditional execution.
+👉 Interview point: “Notebook workflows replace stored procedures and triggers with scheduled jobs.”
+## Packages in Snowflake vs Databricks
+### Snowflake
+“Snowflake does not support PL/SQL‑style packages. Instead, procedural logic is grouped into stored procedures and orchestrated with tasks.”
+### Databricks 
+“Databricks does not support database packages. Instead, you modularize logic using Python/Scala packages, UDFs, and orchestrate workflows with notebooks or Jobs.”
+
+## SQL Loader Equivalent
+### Snowflake
+SQLLoader* → ❌ Not available.
+
+Instead Options →
+
+Snowpipe → Continuous data ingestion service that auto‑loads files from cloud storage (S3, Azure Blob, GCS).
+
+COPY INTO → Bulk load command to ingest data from staged files into tables.
+
+External Tables → Query data directly from cloud storage without loading.
+👉 Interview point: “Snowflake replaces SQL*Loader with COPY INTO for bulk loads and Snowpipe for continuous ingestion.”
+
+### Databricks
+SQLLoader* → ❌ Not available.
+
+Instead Options →
+
+Auto Loader → Incrementally and automatically loads new files from cloud storage into Delta tables.
+
+COPY INTO → SQL command to load data from files into Delta tables.
+
+Structured Streaming → Real‑time ingestion for event‑driven pipelines.
+👉 Interview point: “Databricks replaces SQL*Loader with Auto Loader for incremental ingestion and COPY INTO for bulk loads.”
+## What is PRAGMA?
+In databases like Oracle or PostgreSQL, PRAGMA is a directive or hint to the compiler/runtime (e.g., PRAGMA AUTONOMOUS_TRANSACTION, PRAGMA EXCEPTION_INIT).
+
+It’s used to control behavior at a procedural or system level.
+
+### Snowflake
+PRAGMA Support → ❌ Not supported.
+
+Instead Options →
+Use Snowflake Scripting for procedural control (DECLARE, BEGIN…END, EXCEPTION).
+Use Tasks and Streams for orchestration.
+
+👉 Interview point: “Snowflake does not support PRAGMA directives; procedural control is handled through Snowflake Scripting and stored procedures.”
+
+### Databricks
+PRAGMA Support → ❌ Not supported in SQL.
+
+Instead Options →
+Use SET/CONFIG commands to control runtime behavior.
+Use Spark SQL hints (like /*+ BROADCAST */) for query optimization.
+Use Python/Scala code for exception handling and advanced logic.
+
+👉 Interview point: “Databricks does not support PRAGMA; instead, runtime behavior is controlled through Spark configs, SQL hints, and programming logic.”
+## What is DBMS_UTILITY?
+In Oracle PL/SQL, DBMS_UTILITY is a built‑in package that provides utility functions (e.g., compile schema, analyze objects, get dependencies, format call stacks).
+👉 Interview point: “It’s an Oracle‑specific package for database utilities, not available in Snowflake or Databricks.”
+
+### Snowflake
+DBMS_UTILITY Support → ❌ Not supported.
+
+Instead Options →
+Information Schema Views → query metadata (TABLES, COLUMNS, OBJECT_DEPENDENCIES).
+Account Usage Views → monitor queries, objects, and performance.
+
+Snowflake Scripting → procedural utilities (error handling, call stacks).
+👉 Interview point: “Snowflake replaces DBMS_UTILITY with metadata views and account usage tables for schema and dependency management.”
+
+### Databricks
+DBMS_UTILITY Support → ❌ Not supported.
+
+Instead Options →
+Spark Catalog APIs → list tables, databases, functions (spark.catalog.listTables()).
+System Tables/Views → query metadata about Delta tables.
+Notebook Workflows → orchestration and utility tasks.
+
+👉 Interview point: “Databricks replaces DBMS_UTILITY with Spark Catalog APIs and system tables for metadata and utility operations.”
+
+## What is DBMS_PROFILER?
+In Oracle PL/SQL, DBMS_PROFILER is a built‑in package used to profile PL/SQL code execution — measuring performance, identifying bottlenecks, and analyzing execution paths.
+👉 Interview point: “It’s Oracle‑specific and not available in Snowflake or Databricks.”
+
+🔹 Snowflake
+DBMS_PROFILER Support → ❌ Not supported.
+
+Instead Options →
+
+Query Profile UI → Snowflake provides a visual query profiler in the web UI showing execution plans, stages, and performance metrics.
+
+Query History / Account Usage Views → Monitor query runtime, resource usage, and bottlenecks.
+👉 Interview point: “Snowflake replaces DBMS_PROFILER with its Query Profile and Account Usage views for performance analysis.”
+
+🔹 Databricks
+DBMS_PROFILER Support → ❌ Not supported.
+
+Instead Options →
+
+Spark UI → Provides detailed profiling of jobs, stages, tasks, and execution DAGs.
+
+Databricks Jobs Dashboard → Monitors job execution times and performance.
+
+Structured Streaming Metrics → For profiling streaming workloads.
+👉 Interview point: “Databricks replaces DBMS_PROFILER with Spark UI and Databricks monitoring tools for performance profiling.”
 
 
 
