@@ -213,7 +213,7 @@ REVOKE SELECT ON TABLE users FROM ROLE analyst;
 ~~~~~~~~
 **databricks in example**
 Databricks uses Unity Catalog for fine‑grained permissions.
-~~~~~~~~~
+~~~~~
 -- Grant SELECT privilege on a table to a user/group
 GRANT SELECT ON TABLE users TO `analyst`;
 
@@ -222,7 +222,7 @@ GRANT USAGE ON CATALOG sales TO `analyst`;
 
 -- Revoke privilege
 REVOKE SELECT ON TABLE users FROM `analyst`;
-~~~~~~~~
+~~~~~~~
 ## Transaction Control Language
 manages transactions in SQL.
 **Snowflake → TCL works at the warehouse level
