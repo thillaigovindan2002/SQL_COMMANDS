@@ -253,6 +253,7 @@ SELECT u.id, u.name, o.amount
 FROM users u
 FULL OUTER JOIN orders o ON u.id = o.user_id;
 ~~~~~~~~~~~
+
 ## Databricks JOIN Examples
 ~~~~~~~~
 -- Inner Join
@@ -336,7 +337,7 @@ SELECT id FROM customers;
 ~~~~~~~~~~
 **Snowflake and Databricks both support pseudo/virtual columns, but they differ in naming and usage. Snowflake uses virtual columns defined at table creation, while Databricks relies on system-generated pseudo columns (like _metadata) in Delta tables. Neither stores extra data — values are computed at query time**
 
-##Snowflake Pseudo/Virtual Columns
+## Snowflake Pseudo/Virtual Columns 
 **Definition: A virtual column is a computed column defined in the table schema.**
 ~~~~
 CREATE OR REPLACE TABLE orders (
@@ -363,7 +364,21 @@ _metadata.row_index → row number within the file
 SELECT _metadata.file_path, _metadata.file_size, name
 FROM users;
 ~~~~~~~
+## Aggregation in Snowflake
+Definition: Aggregate functions operate across multiple rows and return a single value.
 
+Common functions: SUM, AVG, COUNT, MIN, MAX, LISTAGG, MEDIAN, STDDEV, VARIANCE.
+
+Advanced functions: APPROX_COUNT_DISTINCT, PERCENTILE_CONT, REGR_SLOPE, KURTOSIS, SKEW.
+
+## Aggregation in Databricks
+Definition: Databricks SQL supports ANSI aggregates plus extensions for big data.
+
+Common functions: SUM, AVG, COUNT, MIN, MAX.
+
+Advanced grouping: GROUPING SETS, CUBE, ROLLUP → multiple aggregations in one query.
+
+Special functions: agg() for metric views, approximate functions for large datasets.
 
 
 
