@@ -366,10 +366,68 @@ FROM users;
 ~~~~~~~
 ## Aggregation in Snowflake
 Definition: Aggregate functions operate across multiple rows and return a single value.
-
 Common functions: SUM, AVG, COUNT, MIN, MAX, LISTAGG, MEDIAN, STDDEV, VARIANCE.
-
 Advanced functions: APPROX_COUNT_DISTINCT, PERCENTILE_CONT, REGR_SLOPE, KURTOSIS, SKEW.
+## SUM
+Returns the total of a numeric column.
+~~~~
+SELECT SUM(quantity) AS total_qty FROM orders;
+~~~~~
+### AVG
+Returns the average value of a numeric column.
+~~~~
+SELECT AVG(unit_price) AS avg_price FROM orders;
+~~~~~
+### COUNT
+Returns the number of rows or non‑null values.
+~~~~~~
+SELECT COUNT(*) AS total_orders FROM orders;
+~~~~~~
+### MIN / MAX 
+Return the smallest or largest value in a column.
+~~~~~~
+SELECT MIN(unit_price), MAX(unit_price) FROM orders;
+~~~~~~
+### LISTAGG
+Concatenates values from multiple rows into a single string.
+~~~~
+SELECT LISTAGG(product_name, ', ') AS product_list FROM products;
+~~~~
+### MEDIAN 
+Returns the middle value of a numeric column.
+~~~~~
+SELECT MEDIAN(unit_price) AS median_price FROM orders;
+~~~~~~
+### STDDEV / VARIANCE 
+Measure spread of numeric values.
+~~~~~
+SELECT STDDEV(unit_price), VARIANCE(unit_price) FROM orders;
+~~~~~
+### APPROX_COUNT_DISTINCT
+Returns approximate distinct count for large datasets.
+~~~~~
+SELECT APPROX_COUNT_DISTINCT(customer_id) AS approx_customers FROM orders;
+~~~~~
+### PERCENTILE_CONT
+Returns a percentile value using continuous distribution.
+~~~~~~
+SELECT PERCENTILE_CONT(0.9) WITHIN GROUP (ORDER BY unit_price) AS p90_price FROM orders;
+~~~~~~~
+### REGR_SLOPE 
+Returns slope of regression line between two columns.
+~~~~~
+SELECT REGR_SLOPE(sales, quantity) AS slope FROM orders;
+~~~~~
+### KURTOSIS 
+Measures peakedness of distribution.
+~~~~~
+SELECT KURTOSIS(unit_price) AS price_kurtosis FROM orders;
+~~~~~
+### SKEW 
+Measures asymmetry of distribution.
+~~~~~~
+SELECT SKEW(unit_price) AS price_skew FROM orders;
+~~~~~~
 
 ## Aggregation in Databricks
 Definition: Databricks SQL supports ANSI aggregates plus extensions for big data.
@@ -377,51 +435,100 @@ Definition: Databricks SQL supports ANSI aggregates plus extensions for big data
 Common functions: SUM, AVG, COUNT, MIN, MAX.
 
 Advanced grouping: GROUPING SETS, CUBE, ROLLUP → multiple aggregations in one query.
-###SUM 
+### SUM 
 Returns the total of a numeric column.
 ~~~~~~
 SELECT SUM(quantity) AS total_qty FROM dealer;
 ~~~~~~
-###AVG 
+### AVG 
 Returns the average value of a numeric column.
 ~~~~~~
 SELECT AVG(quantity) AS avg_qty FROM dealer;
 ~~~~~~~
-###COUNT
+### COUNT
 Returns the number of rows or non‑null values.
 ~~~~~
 SELECT COUNT(*) AS total_rows FROM dealer;
 ~~~~~
-###MIN / MAX
+### MIN / MAX
 Return the smallest or largest value in a column.
 ~~~~~~
 SELECT MIN(quantity), MAX(quantity) FROM dealer;
 ~~~~~~~
-###GROUPING SETS
+### GROUPING SETS
 Generates multiple groupings in one query.
-
-sql
+~~~~~~
 SELECT city, car_model, SUM(quantity) 
 FROM dealer 
 GROUP BY GROUPING SETS ((city), (car_model));
-CUBE → Generates all combinations of groupings for multidimensional analysis.
+~~~~~~
+### CUBE
+Generates all combinations of groupings for multidimensional analysis.
 ~~~~~~~
 SELECT city, car_model, SUM(quantity) 
 FROM dealer 
 GROUP BY CUBE(city, car_model);
 ~~~~~~~
-###ROLLUP → 
+### ROLLUP → 
 Generates hierarchical groupings (drill‑down totals).
 ~~~~~~
 SELECT city, car_model, SUM(quantity) 
 FROM dealer 
 GROUP BY ROLLUP(city, car_model);
 ~~~~~~
-###agg()
+### agg()
 Used in Databricks metric views to compute aggregates programmatically.
 ~~~~~~
 SELECT agg('SUM', quantity) AS total_qty FROM dealer;
 ~~~~~~
+## Date Functions (Snowflake & Databricks)
+Definition → Used to extract, format, and manipulate date/time values.
+~~~~~~~
+-- Current date
+SELECT CURRENT_DATE;
+
+-- Extract year
+SELECT YEAR(order_date) FROM orders;
+
+-- Add days
+SELECT DATEADD(day, 7, order_date) FROM orders;
+~~~~~~~
+👉 “Date functions help in extracting, formatting, and manipulating date/time values like YEAR, MONTH, DATEADD, and CURRENT_DATE.”
+
+## Analytics Functions (Snowflake & Databricks)
+Definition → Used for advanced analysis like ranking, windowing, and statistical calculations.
+~~~~~~
+-- Row number per partition
+SELECT ROW_NUMBER() OVER (PARTITION BY city ORDER BY sales) AS row_num
+FROM orders;
+
+-- Running total
+SELECT SUM(sales) OVER (ORDER BY order_date) AS running_total
+FROM orders;
+
+-- Rank
+SELECT RANK() OVER (ORDER BY sales DESC) AS sales_rank
+FROM orders;
+~~~~~
+👉 “Analytics functions provide ranking, windowing, and statistical analysis using ROW_NUMBER, RANK, SUM OVER, and similar functions.”
+
+## Character Manipulation Functions (Snowflake & Databricks)
+Definition → Used to modify, extract, and format string values.
+~~~~~
+-- Convert to upper case
+SELECT UPPER(name) FROM users;
+
+-- Substring
+SELECT SUBSTRING(name, 1, 3) FROM users;
+
+-- Concatenate
+SELECT CONCAT(first_name, ' ', last_name) AS full_name FROM users;
+
+-- Trim spaces
+SELECT TRIM('   Thanigai   ') AS clean_name;
+~~~~~~
+👉 “Character manipulation functions handle string operations like UPPER, LOWER, SUBSTRING, CONCAT, and TRIM.”
+
 
 
 
