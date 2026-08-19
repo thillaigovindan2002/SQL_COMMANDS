@@ -865,9 +865,121 @@ Databricks Jobs Dashboard → Monitors job execution times and performance.
 
 Structured Streaming Metrics → For profiling streaming workloads.
 👉 Interview point: “Databricks replaces DBMS_PROFILER with Spark UI and Databricks monitoring tools for performance profiling.”
+##  Oracle indexes and their equivalents in Snowflake and Databricks
+### Snowflake Equivalent
+Micro‑partitions
+Clustering keys
+Search Optimization Service
+Hybrid table indexes 
++Micro‑partitions
+ data is automatically divided into micro‑partitions (50–500 MB) with metadata, enabling partition pruning to skip              irrelevant data and speed up queries.”
+ ~~~~~
+CREATE OR REPLACE TABLE SALES (
+    SALE_ID INT,
+    REGION STRING,
+    SALE_DATE DATE,
+    AMOUNT NUMBER
+);
+INSERT INTO SALES VALUES
+(1, 'APAC', '2026-07-01', 100),
+(2, 'EUROPE', '2026-07-02', 200),
+(3, 'US', '2026-07-03', 300),
+(4, 'APAC', '2026-08-01', 400);
 
+SELECT REGION, SUM(AMOUNT)
+FROM SALES
+WHERE SALE_DATE = '2026-07-01'
+GROUP BY REGION;
+~~~~~~
+Snowflake checks metadata:
+Partition with min/max SALE_DATE covering 2026-07-01 → scanned.
+Other partitions → skipped as irrelevant.
 
++Clustering keys 
+ “Clustering keys in Snowflake define how micro‑partitions are organized, improving query performance by guiding metadata pruning.”
++Search Optimization Service
+ “Snowflake’s search optimization service builds hidden indexes to accelerate point‑lookup queries on semi‑structured data like JSON.”
+Hybrid Tables
+👉 “Hybrid tables in Snowflake use row‑based storage with enforced primary keys and indexes, designed for OLTP workloads alongside OLAP.”
+### Databricks Index Equivalents
+Snowflake has clustering keys + hybrid table indexes, but in Databricks the equivalents are:
 
++Data Skipping Index  
+👉 Each Delta file stores min/max statistics. Queries skip irrelevant files automatically.
+Equivalent to Snowflake’s micro‑partition metadata pruning.
 
++Bloom Filter Index  
+👉 Probabilistic index for fast point lookups on high‑cardinality columns (like email, customer_id).
+Equivalent to Snowflake’s search optimization service.
+
++Z‑Order Clustering  
+👉 Multi‑column ordering technique that co‑locates related values in the same set of files.
+Equivalent to Snowflake’s clustering keys.
+
+## OLTP vs OLAP clearly with usage, workflow, and examples
+
+OLTP (Online Transaction Processing)
+Purpose: Handles real‑time transactions (insert, update, delete).
+
+Storage: Row‑oriented, normalized schema.
+
+Usage: Banking systems, e‑commerce checkout, airline booking.
+
+Key Traits:
+
+Fast, small queries.
+
+High concurrency.
+
+ACID compliance.
+
+Workflow (Bank Transfer Example)
+User Action → Customer initiates transfer.
+
+Transaction Request → SQL sent to OLTP DB.
+
+Validation → Constraints checked (PK, FK).
+
+Execution → Update balances.
+
+Commit/Rollback → Ensure atomicity.
+
+Response → Confirmation to user.
+~~~~~
+BEGIN TRANSACTION;
+UPDATE ACCOUNTS SET BALANCE = BALANCE - 500 WHERE ACCOUNT_ID = 101;
+UPDATE ACCOUNTS SET BALANCE = BALANCE + 500 WHERE ACCOUNT_ID = 202;
+COMMIT;
+~~~~~
+OLAP (Online Analytical Processing)
+Purpose: Handles complex analytical queries on large datasets.
+
+Storage: Column‑oriented, denormalized schema (star/snowflake).
+
+Usage: Business intelligence dashboards, trend analysis, forecasting.
+
+Key Traits:
+
+Heavy queries (aggregations, joins).
+
+Few concurrent users.
+
+Historical data analysis.
+
+Workflow (Sales Trend Example)
+Data Load → ETL/CDC pipeline moves OLTP data into OLAP warehouse.
+
+Query Execution → Analyst runs aggregation query.
+
+Processing → Columnar storage scans only relevant columns.
+
+Result → Dashboard/report generated.
+~~~~~
+SELECT REGION, MONTH(SALE_DATE), SUM(AMOUNT) AS TOTAL_SALES
+FROM SALES
+GROUP BY REGION, MONTH(SALE_DATE);
+~~~~~
+
+**OLTP systems process fast, small, real‑time transactions with enforced ACID properties, while OLAP systems handle complex analytical queries over large historical datasets. Companies use OLTP for daily operations and OLAP for insights, connected by ETL pipelines**
 
 
