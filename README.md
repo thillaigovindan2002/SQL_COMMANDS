@@ -895,22 +895,26 @@ Snowflake checks metadata:
 Partition with min/max SALE_DATE covering 2026-07-01 → scanned.
 Other partitions → skipped as irrelevant.
 
-+Clustering keys 
+ _ Clustering keys 
  “Clustering keys in Snowflake define how micro‑partitions are organized, improving query performance by guiding metadata pruning.”
-+Search Optimization Service
+_ Search Optimization Service
  “Snowflake’s search optimization service builds hidden indexes to accelerate point‑lookup queries on semi‑structured data like JSON.”
-Hybrid Tables
+_ Hybrid Tables
 👉 “Hybrid tables in Snowflake use row‑based storage with enforced primary keys and indexes, designed for OLTP workloads alongside OLAP.”
 ### Databricks Index Equivalents
 Snowflake has clustering keys + hybrid table indexes, but in Databricks the equivalents are:
 
 +Data Skipping Index  
-👉 Each Delta file stores min/max statistics. Queries skip irrelevant files automatically.
-Equivalent to Snowflake’s micro‑partition metadata pruning.
-
+queries skip irrelevant files by storing min/max statistics for each column in Delta Lake.
+same query in snowflake
 +Bloom Filter Index  
 👉 Probabilistic index for fast point lookups on high‑cardinality columns (like email, customer_id).
 Equivalent to Snowflake’s search optimization service.
+Definition: A probabilistic data structure that quickly checks if a value might exist in a dataset.
+
+Purpose: Speeds up point lookups (=, IN) on high‑cardinality columns (like customer IDs, emails).
+
+Benefit: Reduces the number of files scanned when searching for specific values.
 
 +Z‑Order Clustering  
 👉 Multi‑column ordering technique that co‑locates related values in the same set of files.
